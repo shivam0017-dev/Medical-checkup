@@ -1,3 +1,63 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+import asyncio
+
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
+
+# In[2]:
+
+
+
+
+
+# In[ ]:
+
+
+from transformers import T5ForConditionalGeneration, T5Tokenizer
+
+# Load model once
+tokenizer = T5Tokenizer.from_pretrained("t5-small")
+model = T5ForConditionalGeneration.from_pretrained("t5-small")
+
+def get_precaution(disease):
+    input_text = f"simplify: What should a patient with {disease} do?"
+    input_ids = tokenizer.encode(input_text, return_tensors="pt", max_length=512, truncation=True)
+    output_ids = model.generate(input_ids, max_length=50, num_beams=5, early_stopping=True)
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True)
+
+
+# In[4]:
+
+
+
+
+
+# In[5]:
+
+
+precaution_dict = {
+    "Diabetes": "Eat healthy, monitor blood sugar, and exercise regularly.",
+    "Heart Disease": "Avoid stress, follow a heart-healthy diet, and take medications.",
+    "Parkinson": "Take medications on time, and follow physiotherapy advice.",
+    "Lung Cancer": "Avoid smoking, get regular scans, and follow your oncologist’s advice.",
+    "Thyroid": "Take hormone replacement therapy and monitor TSH levels."
+}
+
+def get_precaution(disease):
+    return precaution_dict.get(disease, "Consult your doctor for detailed precautions.")
+
+
+# In[6]:
+
+
 import streamlit as st
 import pickle
 from streamlit_option_menu import option_menu
@@ -43,7 +103,7 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Load the saved models
 models = {
-    'diabetes': pickle.load(open('Models/diabetes_model.sav', 'rb')),
+    'diabetes': pickle.load(open('Models/diabetes.sav', 'rb')),
     'heart_disease': pickle.load(open('Models/heart_disease_model.sav', 'rb')),
     'parkinsons': pickle.load(open('Models/parkinsons_model.sav', 'rb')),
     'lung_cancer': pickle.load(open('Models/lungs_disease_model.sav', 'rb')),
@@ -85,6 +145,10 @@ if selected == 'Diabetes Prediction':
         diab_prediction = models['diabetes'].predict([[Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age]])
         diab_diagnosis = 'The person is diabetic' if diab_prediction[0] == 1 else 'The person is not diabetic'
         st.success(diab_diagnosis)
+      # Generate and display medical precautions using BioBERT
+        if diab_prediction[0] == 1:
+            precaution = get_precaution("Diabetes")
+            st.info(f"**Recommended Precaution:** {precaution}")  
 
 # Heart Disease Prediction Page
 if selected == 'Heart Disease Prediction':
@@ -110,6 +174,10 @@ if selected == 'Heart Disease Prediction':
         heart_prediction = models['heart_disease'].predict([[age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]])
         heart_diagnosis = 'The person has heart disease' if heart_prediction[0] == 1 else 'The person does not have heart disease'
         st.success(heart_diagnosis)
+      # Generate and display medical precautions using BioBERT
+        if heart_prediction[0] == 1:
+            precaution = get_precaution("heart Disease")
+            st.info(f"**Recommended Precaution:** {precaution}")    
 
 # Parkinson's Prediction Page
 if selected == "Parkinsons Prediction":
@@ -144,7 +212,10 @@ if selected == "Parkinsons Prediction":
         parkinsons_prediction = models['parkinsons'].predict([[fo, fhi, flo, Jitter_percent, Jitter_Abs, RAP, PPQ, DDP, Shimmer, Shimmer_dB, APQ3, APQ5, APQ, DDA, NHR, HNR, RPDE, DFA, spread1, spread2, D2, PPE]])
         parkinsons_diagnosis = "The person has Parkinson's disease" if parkinsons_prediction[0] == 1 else "The person does not have Parkinson's disease"
         st.success(parkinsons_diagnosis)
-
+      # Generate and display medical precautions using BioBERT
+        if parkinsons_prediction[0] == 1:
+            precaution = get_precaution("Pankinson")
+            st.info(f"**Recommended Precaution:** {precaution}")
 # Lung Cancer Prediction Page
 if selected == "Lung Cancer Prediction":
     st.title("Lung Cancer")
@@ -171,6 +242,10 @@ if selected == "Lung Cancer Prediction":
         lungs_prediction = models['lung_cancer'].predict([[GENDER, AGE, SMOKING, YELLOW_FINGERS, ANXIETY, PEER_PRESSURE, CHRONIC_DISEASE, FATIGUE, ALLERGY, WHEEZING, ALCOHOL_CONSUMING, COUGHING, SHORTNESS_OF_BREATH, SWALLOWING_DIFFICULTY, CHEST_PAIN]])
         lungs_diagnosis = "The person has lung cancer disease" if lungs_prediction[0] == 1 else "The person does not have lung cancer disease"
         st.success(lungs_diagnosis)
+      # Generate and display medical precautions using BioBERT
+        if lungs_prediction[0] == 1:
+            precaution = get_precaution("Lung Cancer")
+            st.info(f"**Recommended Precaution:** {precaution}")  
 
 # Hypo-Thyroid Prediction Page
 if selected == "Hypo-Thyroid Prediction":
@@ -190,3 +265,20 @@ if selected == "Hypo-Thyroid Prediction":
         thyroid_prediction = models['thyroid'].predict([[age, sex, on_thyroxine, tsh, t3_measured, t3, tt4]])
         thyroid_diagnosis = "The person has Hypo-Thyroid disease" if thyroid_prediction[0] == 1 else "The person does not have Hypo-Thyroid disease"
         st.success(thyroid_diagnosis)
+      # Generate and display medical precautions using BioBERT
+        if thyroid_prediction[0] == 1:
+            precaution = get_precaution("Thyroid")
+            st.info(f"**Recommended Precaution:** {precaution}")
+
+
+# In[7]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
