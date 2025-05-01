@@ -5,18 +5,11 @@
 import os
 import subprocess
 import sys
+import pandas as pd
+import numpy as np
+
 
 # Install missing libraries
-required_libraries = [
-    "transformers==4.31.0",
-    "torch==2.0.1",
-    "sentencepiece==0.1.96",
-    "scikit-learn==1.2.2",
-    "streamlit==1.44.1"
-]
-
-for lib in required_libraries:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", lib])
 
 
 import asyncio
